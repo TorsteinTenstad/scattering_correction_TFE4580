@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from read_data import get_reflectance, read_data
 from newtons_method import newtons_method
 import mie
+from a import a
 
 np.seterr(all = "raise")
 
@@ -146,20 +147,23 @@ def gamma_model_x(xs, nr):
 
 
 def fit_gamma_model(lambdas, spectrum, mua_0=None):
-    r = 1e-5
-    A = 0.17
-    ns = 1.4
+    ns = 1.44
     nb = 1
-    vol = 4*np.pi*r**3/3
-    Ns = 0.56/vol
+    A = a(ns, nb)
 
     mua = mua_0 if mua_0 else 20*np.ones(len(lambdas))
     gamma_ = np.empty(len(lambdas))
 
-    mu_s_prime = mie.get_mu_s_prime_data(r, lambdas, ns, nb, Ns)
+    rs = [0.8, 0.7, 0.51, 0.285, 0.125, 0.085, 0.07]
+    pr = [0.2, 4.8, 25, 57, 8, 3.5, 1.5]
+    mu_s_prime = np.zeros(len(lambdas))
+    for r, p in zip(rs, pr):
+        vol = 4*np.pi*r**3/3
+        Ns = 0.59/vol
+        mu_s_prime += p*mie.get_mu_s_prime_data(r, lambdas, ns, nb, Ns)
 
     for i, lambda_ in enumerate(lambdas):
-        f = lambda mua : gamma(A, mu_s_prime[i], mua) - 0.8*spectrum[i]
+        f = lambda mua : gamma(A, mu_s_prime[i], mua) - spectrum[i]
         D_f = lambda mua : D_gamma(A, mu_s_prime[i], mua)
         mua[i] = newtons_method(f, D_f, mua[i], epsilon=1e-4, minimum_defined_value=0.001)[0]
         gamma_[i] = gamma(A, mu_s_prime[i], mua[i])

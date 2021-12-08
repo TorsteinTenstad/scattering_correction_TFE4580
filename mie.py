@@ -1,3 +1,4 @@
+from re import L
 import numpy as np
 from scipy import special
 from matplotlib import pyplot as plt
@@ -5,6 +6,7 @@ import pickle
 import os
 from tqdm import tqdm
 from butter_filter import butter_lowpass_filter
+from read_data import read_data
 
 def phi(l, z):
     return np.sqrt(np.pi*z/2)*J(l+1/2, z)
@@ -131,6 +133,34 @@ def get_mu_s_prime_data(r, lambdas, ns, nb, Ns):
 
 
 if __name__ == "__main__":
+    centers, _, _ = read_data()
+    lambdas = 1e-9*np.linspace(centers[0], centers[-1], 500)
+    w, n_sio2 = np.genfromtxt('SiO2.txt')[1:].T[:-1]
+    w = w
+    ns = np.interp(lambdas, w, n_sio2)
+    fig, ax = plt.subplots()
+    ax.plot(w, n_sio2)
+    a = np.where(w < 1e9*centers[0])[0][-1]
+    print(n_sio2[a:][0], n_sio2[a:][-1])
+    ax.plot(w[a:], n_sio2[a:], label='Wavelength range of the hyperspectral images')
+    ax.set_xlabel('Wavelength [nm]')
+    ax.set_ylabel('Refractive index of SiO2')
+    plt.legend()
+    plt.show()
+    r = 1e-5
+    nb = 1
+    vol = 4*np.pi*r**3/3
+    Ns = 0.56/vol
+    mu_s_prime_ = get_mu_s_prime_data(r, lambdas, ns, nb, Ns)
+
+    musr = np.zeros(len(lambdas))
+    for r_, p in zip([0.5e-5, 0.8e-5, 1e-5, 1.2e-5, 1.5e-5],[0.1, 0.2, 0.4, 0.2, 0.1]):
+        musr+=p*get_mu_s_prime_data(r_, lambdas, ns, nb, Ns)
+
+    plt.plot(lambdas, mu_s_prime_)
+    plt.plot(lambdas, musr)
+    plt.show()
+    exit()
     xs, Qss, gs = get_smooth_Qs_and_g_graph(1, 160, 1.4, n=100000)
     plt.plot(xs, Qss)
     plt.show()

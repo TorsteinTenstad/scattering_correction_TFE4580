@@ -33,6 +33,7 @@ def Qs_and_g(x, n_rel):
     y = n_rel*x
 
     err = 1e-8
+
     Qs = 0
     gQs = 0
     for n in range(1, 100000):
@@ -101,8 +102,8 @@ def get_Qs_and_g_graph(x_start, x_end, n_rel, n):
 
 def get_smooth_Qs_and_g_graph(x_start, x_end, n_rel, n):
     xs, Qss, gs = get_Qs_and_g_graph(x_start, x_end, n_rel, n)
-    Qss = butter_lowpass_filter(Qss, 0.2, n/(x_end-x_start))
-    gs = butter_lowpass_filter(gs, 0.2, n/(x_end-x_start))
+    Qss = butter_lowpass_filter(Qss, 50, n)
+    gs = butter_lowpass_filter(gs, 50, n)
     return xs, Qss, gs
 
 
@@ -123,7 +124,15 @@ def mu_s_prime(Qs, g, r, N_s):
 
 def get_mu_s_prime_data(r, lambdas, ns, nb, Ns):
     x_eval, n_rel = x_and_n_rel(r, lambdas, ns, nb)
-    xs, Qss, gs = get_smooth_Qs_and_g_graph(1, 160, n_rel, n=100000)
+
+    #limits = np.genfromtxt('limits.txt')
+    #limits[0] = max(limits[0], np.max(x_eval))
+    #limits[1] = min(limits[1], np.min(x_eval))
+    #np.savetxt('limits.txt', limits)
+
+    x_min = 1e+05
+    x_max = 6e+06
+    xs, Qss, gs = get_smooth_Qs_and_g_graph(100, 6000, n_rel, n=1000)
     Qs = np.interp(x_eval, xs, Qss)
     g = np.interp(x_eval, xs, gs)
     mu_s_prime_ = mu_s_prime(Qs, g, r, Ns)
@@ -133,51 +142,24 @@ def get_mu_s_prime_data(r, lambdas, ns, nb, Ns):
 
 
 if __name__ == "__main__":
-    centers, _, _ = read_data()
-    lambdas = 1e-9*np.linspace(centers[0], centers[-1], 500)
-    w, n_sio2 = np.genfromtxt('SiO2.txt')[1:].T[:-1]
-    w = w
-    ns = np.interp(lambdas, w, n_sio2)
-    fig, ax = plt.subplots()
-    ax.plot(w, n_sio2)
-    a = np.where(w < 1e9*centers[0])[0][-1]
-    print(n_sio2[a:][0], n_sio2[a:][-1])
-    ax.plot(w[a:], n_sio2[a:], label='Wavelength range of the hyperspectral images')
-    ax.set_xlabel('Wavelength [nm]')
-    ax.set_ylabel('Refractive index of SiO2')
-    plt.legend()
-    plt.show()
-    r = 1e-5
-    nb = 1
-    vol = 4*np.pi*r**3/3
-    Ns = 0.56/vol
-    mu_s_prime_ = get_mu_s_prime_data(r, lambdas, ns, nb, Ns)
-
-    musr = np.zeros(len(lambdas))
-    for r_, p in zip([0.5e-5, 0.8e-5, 1e-5, 1.2e-5, 1.5e-5],[0.1, 0.2, 0.4, 0.2, 0.1]):
-        musr+=p*get_mu_s_prime_data(r_, lambdas, ns, nb, Ns)
-
-    plt.plot(lambdas, mu_s_prime_)
-    plt.plot(lambdas, musr)
-    plt.show()
-    exit()
-    xs, Qss, gs = get_smooth_Qs_and_g_graph(1, 160, 1.4, n=100000)
+    x_min = 1.748331551456249435e+05
+    x_max = 5.278096071058874950e+06
+    x_min = 100
+    x_max = 6000
+    xs, Qss, gs = get_Qs_and_g_graph(x_min, x_max, 1.44, n=1000)
     plt.plot(xs, Qss)
     plt.show()
-    plt.plot(xs, gs)
+    xs, Qss, gs = get_smooth_Qs_and_g_graph(x_min, x_max, 1.44, n=1000)
+    plt.plot(xs, Qss)
     plt.show()
 
     exit()
-    exp_x = np.linspace(-0.2, 2.2, 5000)
-    x = 10**exp_x
-
-    Qs = np.array([Qs_and_g(x_, 1.18)[0] for x_ in x])
-
-    exp_Qs = np.log10(Qs)
-
-    plt.plot(exp_x, exp_Qs)
-    plt.show()
-    plt.plot(x, Qs)
+    lambdas, _, _ = read_data()
+    r = 0.8
+    vol = 4*np.pi*r**3/3
+    Ns = 0.59/vol
+    musr = get_mu_s_prime_data(r, lambdas, 1.44, 1, Ns)
+    plt.plot(lambdas, musr)
     plt.show()
 
 

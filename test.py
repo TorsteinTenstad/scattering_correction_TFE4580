@@ -1,31 +1,23 @@
+import matplotlib.pylab as plt
 import numpy as np
-from matplotlib import pyplot as plt
-from read_data import read_data
 
+print(0.8e-3*2*np.pi/(1e-9*952.341181))
+print(0.07e-3*2*np.pi/(1e-9*2515.672563))
 
-def n_sio2(lambdas):
-    microns = lambdas*1e6
-    num_1 = 0.6961663*microns**2
-    den_1 = microns**2-0.06884043**2
-    num_2 = 0.4079426*microns**2
-    den_2 = microns**2-0.1162414**2
-    num_3 = 0.8974794*microns**2
-    den_3 = microns**2-9.896161**2
-    n = np.sqrt(num_1/den_1+num_2/den_2+num_3/den_3+1)
-    return n
+exit()
+x = np.linspace(0,10,100)
+y = np.sin(x)
 
+f, ax = plt.subplots()
 
-if __name__ == "__main__":
-    centers, _, _ = read_data()
-    l = 1e-9*np.linspace(300, 4000, 500)
-    l_ = np.linspace(centers[0], centers[-1], 500)
+ax.plot(x, y)
 
-    fig, ax = plt.subplots()
-    
+def draw_brakes(ax, x_pos, d=0.015):
+    for a in [-0.01, 0.01]:
+        pos = (x_pos + a)
+        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+        ax.plot(((pos-d),(pos+d)), (-d,+d), **kwargs)
+        ax.plot(((pos-d),(pos+d)),(1-d,1+d), **kwargs)
 
-    ax.plot(1e9*l, n_sio2(l))
-    ax.plot(1e9*l_, n_sio2(l_), label='Wavelength range of the hyperspectral images')
-    ax.set_xlabel('Wavelength [nm]')
-    ax.set_ylabel('Refractive index of SiO2')
-    plt.legend()
-    plt.show()
+draw_brakes(ax, 0.5)
+plt.show()

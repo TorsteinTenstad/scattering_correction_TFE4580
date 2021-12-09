@@ -17,7 +17,7 @@ def apply_func_on_sets(train_set, test_set, func):
                 output[t][c][i] = func(spectrum)
     return output[0], output[1]
 
-lambdas, spectra, concentrations = get_transmission(12, 12)
+lambdas, spectra, concentrations = get_transmission(15, 15)
 absorbance_sio2, absorbance_caco3 = get_absorbance_data(lambdas)
 
 train_set = []

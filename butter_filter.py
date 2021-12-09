@@ -1,6 +1,6 @@
 
 from scipy.signal import butter, lfilter, freqz
-
+import numpy as np
 
 def butter_lowpass(cutoff, fs, order=5):
     nyq = 0.5 * fs
@@ -10,5 +10,6 @@ def butter_lowpass(cutoff, fs, order=5):
 
 def butter_lowpass_filter(data, cutoff, fs, order=5):
     b, a = butter_lowpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
+    mean=np.average(data)
+    y = lfilter(b, a, data-mean)+mean
     return y

@@ -105,7 +105,8 @@ def get_absorbance_data(lambdas):
 
 
 if __name__ == "__main__":
-    lambdas, transmission, concentrations = get_transmission(100, 100)
+    lambdas, transmission, concentrations = get_transmission(15, 15)
+    exit()
     absorbance_sio2, absorbance_caco3 = get_absorbance_data(lambdas)
 
     fig, axs = plt.subplots(nrows=2, figsize=(12,5), sharex=True)
